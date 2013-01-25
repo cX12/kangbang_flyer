@@ -38,7 +38,7 @@
 #include <asm/mach/arch.h>
 #include <asm/mach/map.h>
 #include <asm/setup.h>
-#include <mach/msm_flashlight.h>
+#include <linux/htc_flashlight.h>
 
 #include <mach/system.h>
 #include <mach/gpio.h>
