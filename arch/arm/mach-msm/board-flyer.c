@@ -58,7 +58,6 @@
 #include <mach/dma.h>
 #include <mach/msm_iomap.h>
 #include <mach/perflock.h>
-#include <mach/msm_serial_debugger.h>
 #include <mach/rpc_pmapp.h>
 #include <mach/remote_spinlock.h>
 #include <mach/msm_panel.h>
