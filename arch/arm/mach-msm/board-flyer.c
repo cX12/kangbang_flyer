@@ -25,7 +25,7 @@
 #include <linux/i2c.h>
 #include <linux/i2c-msm.h>
 #include <linux/spi/spi.h>
-#include <mach/qdsp5v2/msm_lpa.h>
+#include <mach/qdsp5v2_2x/msm_lpa.h>
 #include <linux/akm8975.h>
 #include <linux/bma150.h>
 #include <linux/ntrig.h>
