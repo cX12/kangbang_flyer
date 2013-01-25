@@ -76,7 +76,7 @@
 #include "smd_private.h"
 #include "spm.h"
 #include "pm.h"
-#include "socinfo.h"
+#include "mach/socinfo.h"
 #ifdef CONFIG_MSM_SSBI
 #include <mach/msm_ssbi.h>
 #endif
