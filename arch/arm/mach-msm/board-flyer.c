@@ -332,13 +332,13 @@ static int msm_hsusb_pmic_notif_init(void (*callback)(int online), int init)
 #endif
 
 #ifdef CONFIG_USB_MSM_OTG_72K
-static int hsusb_rpc_connect(int connect)
+/*static int hsusb_rpc_connect(int connect)
 {
 	if (connect)
 		return msm_hsusb_rpc_connect();
 	else
 		return msm_hsusb_rpc_close();
-}
+} */ // OBSOLETE
 
 static struct vreg *vreg_3p3;
 static int msm_hsusb_ldo_init(int init)
