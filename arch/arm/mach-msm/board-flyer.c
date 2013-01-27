@@ -604,28 +604,98 @@ void flyer_add_usb_devices(void)
 }
 #endif
 
-int flyer_pm8058_gpios_init(struct pm8058_chip *pm_chip)
+static int flyer_pm8058_gpios_init(void)
 {
-	if (system_rev >= 2)
-		pm8058_gpio_cfg(FLYER_CSA_INTz_XC, PM_GPIO_DIR_IN, 0, 0, PM_GPIO_PULL_UP_31P5, PM_GPIO_VIN_L5, 0, PM_GPIO_FUNC_NORMAL, 0);
+	int rc;
+	static struct pm_gpio tp_rstz = {
+		.direction      = PM_GPIO_DIR_OUT,
+		.output_buffer  = PM_GPIO_OUT_BUF_CMOS,
+		.output_value   = 1,
+		.pull           = PM_GPIO_PULL_UP_31P5,
+		.vin_sel        = PM8058_GPIO_VIN_L5,
+		.out_strength   = PM_GPIO_STRENGTH_HIGH,
+		.function       = PM_GPIO_FUNC_NORMAL,
+		.inv_int_pol    = 0,
+	};
 
-	pm8058_gpio_cfg(FLYER_TP_RSTz, PM_GPIO_DIR_IN, 0, 0, PM_GPIO_PULL_DN, PM_GPIO_VIN_BB, 0, PM_GPIO_FUNC_NORMAL, 0);
-	pm8058_gpio_cfg(FLYER_SDMC_CD_N, PM_GPIO_DIR_IN, 0, 0, PM_GPIO_PULL_UP_31P5, PM_GPIO_VIN_L5, 0, PM_GPIO_FUNC_NORMAL, 0);
-	pm8058_gpio_cfg(FLYER_VOL_UP, PM_GPIO_DIR_IN, 0, 0, PM_GPIO_PULL_UP_31P5, PM_GPIO_VIN_S3, 0, PM_GPIO_FUNC_NORMAL, 0);
-	pm8058_gpio_cfg(FLYER_VOL_DN, PM_GPIO_DIR_IN, 0, 0, PM_GPIO_PULL_UP_31P5, PM_GPIO_VIN_S3, 0, PM_GPIO_FUNC_NORMAL, 0);
-	pm8058_gpio_cfg(FLYER_AUD_HP_DETz, PM_GPIO_DIR_IN, 0, 0, PM_GPIO_PULL_UP_31P5, PM_GPIO_VIN_S3, 0, PM_GPIO_FUNC_NORMAL, 0);
-	pm8058_gpio_cfg(FLYER_H2W_CABLE_IN1, PM_GPIO_DIR_IN, 0, 0, PM_GPIO_PULL_NO, PM_GPIO_VIN_S3, 0, PM_GPIO_FUNC_NORMAL, 0);
-	pm8058_gpio_cfg(FLYER_H2W_CABLE_IN2, PM_GPIO_DIR_IN, 0, 0, PM_GPIO_PULL_NO, PM_GPIO_VIN_S3, 0, PM_GPIO_FUNC_NORMAL, 0);
-	pm8058_gpio_cfg(FLYER_H2W_IO1_CLK, PM_GPIO_DIR_IN, 0, 0, PM_GPIO_PULL_NO, PM_GPIO_VIN_S3, 0, PM_GPIO_FUNC_NORMAL, 0);
-	pm8058_gpio_cfg(FLYER_H2W_IO2_DAT, PM_GPIO_DIR_IN, 0, 0, PM_GPIO_PULL_NO, PM_GPIO_VIN_S3, 0, PM_GPIO_FUNC_NORMAL, 0);
-	if (system_rev >= 2)
-		pm8058_gpio_cfg(FLYER_UART_EN, PM_GPIO_DIR_IN, 0, 0, PM_GPIO_PULL_NO, PM_GPIO_VIN_S3, 0, PM_GPIO_FUNC_NORMAL, 0);
+	static struct pm_gpio VOL_UP = {
+		.direction      = PM_GPIO_DIR_IN,
+		.output_buffer  = 0,
+		.output_value   = 0,
+		.pull           = PM_GPIO_PULL_UP_31P5,
+		.vin_sel        = PM8058_GPIO_VIN_S3,
+		.out_strength   = 0,
+		.function       = PM_GPIO_FUNC_NORMAL,
+		.inv_int_pol    = 0,
+	};
 
-	if (system_rev >= 3){/* for Led XD board */
-		pm8058_gpio_cfg(FLYER_PEN_LED3, PM_GPIO_DIR_IN, 0, 0, PM_GPIO_PULL_NO, PM_GPIO_VIN_L6, 0, PM_GPIO_FUNC_NORMAL, 0);
-	}
+	static struct pm_gpio VOL_DN = {
+		.direction      = PM_GPIO_DIR_IN,
+		.output_buffer  = 0,
+		.output_value   = 0,
+		.pull           = PM_GPIO_PULL_UP_31P5,
+		.vin_sel        = PM8058_GPIO_VIN_S3,
+		.out_strength   = 0,
+		.function       = PM_GPIO_FUNC_NORMAL,
+		.inv_int_pol    = 0,
+	};
 
-	pm8058_gpio_cfg(FLYER_9V_AC_DETECT, PM_GPIO_DIR_OUT, PM_GPIO_OUT_BUF_CMOS, 0, PM_GPIO_PULL_DN, PM_GPIO_VIN_L6, 0, PM_GPIO_FUNC_NORMAL, 0);
+	static struct pm_gpio sdmc_cd_n = {
+		.direction      = PM_GPIO_DIR_IN,
+		.output_buffer  = 0,
+		.output_value   = 0,
+		.pull           = PM_GPIO_PULL_UP_31P5,
+		.vin_sel        = PM8058_GPIO_VIN_L5,
+		.out_strength   = 0,
+		.function       = PM_GPIO_FUNC_NORMAL,
+		.inv_int_pol    = 0,
+	};
+
+	static struct pm_gpio headset = {
+		.direction      = PM_GPIO_DIR_IN,
+		.output_buffer  = 0,
+		.output_value   = 0,
+		.pull           = PM_GPIO_PULL_UP_31P5,
+		.vin_sel        = PM8058_GPIO_VIN_S3,
+		.out_strength   = 0,
+		.function       = PM_GPIO_FUNC_NORMAL,
+		.inv_int_pol    = 0,
+	};
+
+	rc = pm8xxx_gpio_config(PM8058_GPIO_PM_TO_SYS(FLYER_TP_RSTz), &tp_rstz);
+	if (rc) {
+		printk(KERN_ERR "%s TP_RSTz config failed\n", __func__);
+		return rc;
+	} else
+	  printk(KERN_ERR "%s TP_RSTz config ok\n", __func__);
+
+	rc = pm8xxx_gpio_config(PM8058_GPIO_PM_TO_SYS(FLYER_SDMC_CD_N), &sdmc_cd_n);
+	if (rc) {
+		printk(KERN_ERR "%s SLIDING_INTz config failed\n", __func__);
+		return rc;
+	} else
+	  printk(KERN_ERR "%s SLIDING_INTz config ok\n", __func__);
+#if 0
+	rc = pm8xxx_gpio_config(PM8058_GPIO_PM_TO_SYS(FLYER_VOL_UP), &vol_up);
+	if (rc) {
+		printk(KERN_ERR "%s VOL_UP config failed\n", __func__);
+		return rc;
+	} else
+	  printk(KERN_ERR "%s VOL_UP config ok\n", __func__);
+	rc = pm8xxx_gpio_config(PM8058_GPIO_PM_TO_SYS(FLYER_VOL_DN), &vol_dn);
+	if (rc) {
+		printk(KERN_ERR "%s VOL_DN config failed\n", __func__);
+		return rc;
+	} else
+	  printk(KERN_ERR "%s VOL_DN config ok\n", __func__);
+#endif
+	rc = pm8xxx_gpio_config(PM8058_GPIO_PM_TO_SYS(FLYER_AUD_HP_DETz), &headset);
+	if (rc) {
+		printk(KERN_ERR "%s AUD_HP_DETz config failed\n", __func__);
+		return rc;
+	} else
+	  printk(KERN_ERR "%s AUD_HP_DETz config ok\n", __func__);
+
 	return 0;
 }
 
